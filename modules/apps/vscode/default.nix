@@ -9,7 +9,7 @@ let
   cfg = config.et42.workflow.vscode;
   user = config.et42.workflow.user;
 
-  baseExtensions = import ./extensions.nix { inherit pkgs; };
+  baseExtensions = import ./extensions.nix { pkgs = cfg.extensionPkgs; };
 
   baseSettings = {
     "[nix]".editor.defaultFormatter = "jnoortheen.nix-ide";
@@ -64,6 +64,18 @@ in
   options.et42.workflow.vscode = {
     enable = lib.mkEnableOption "VSCode with base config";
 
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = pkgs.vscode;
+      description = "vscode package to use";
+    };
+
+    extensionPkgs = lib.mkOption {
+      type = lib.types.unspecified;
+      default = pkgs;
+      description = "pkgs to use for building extensions";
+    };
+
     extraExtensions = lib.mkOption {
       type = lib.types.listOf lib.types.package;
       default = [ ];
@@ -89,6 +101,7 @@ in
 
     home-manager.users.${user}.programs.vscode = {
       enable = true;
+      package = cfg.package;
 
       profiles.default = {
         extensions = baseExtensions ++ cfg.extraExtensions;
