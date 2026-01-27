@@ -5,10 +5,10 @@
 }:
 
 let
-  cfg = config.et42.workflow.ice;
+  cfg = config.et42.workflow.apps.ice;
 in
 {
-  options.et42.workflow.ice = {
+  options.et42.workflow.apps.ice = {
     enable = lib.mkEnableOption "Ice menubar management";
   };
 

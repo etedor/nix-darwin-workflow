@@ -5,10 +5,10 @@
 }:
 
 let
-  cfg = config.et42.workflow.spaces;
+  cfg = config.et42.workflow.system.spaces;
 in
 {
-  options.et42.workflow.spaces = {
+  options.et42.workflow.system.spaces = {
     enable = lib.mkEnableOption "Mission Control Ctrl+1-9 hotkeys";
   };
 

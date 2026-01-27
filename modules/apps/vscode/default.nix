@@ -6,7 +6,7 @@
 }:
 
 let
-  cfg = config.et42.workflow.vscode;
+  cfg = config.et42.workflow.apps.vscode;
   user = config.et42.workflow.user;
 
   baseExtensions = import ./extensions.nix { pkgs = cfg.extensionPkgs; };
@@ -61,7 +61,7 @@ let
   ];
 in
 {
-  options.et42.workflow.vscode = {
+  options.et42.workflow.apps.vscode = {
     enable = lib.mkEnableOption "VSCode with base config";
 
     package = lib.mkOption {

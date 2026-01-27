@@ -5,10 +5,10 @@
 }:
 
 let
-  cfg = config.et42.workflow.shortcat;
+  cfg = config.et42.workflow.apps.shortcat;
 in
 {
-  options.et42.workflow.shortcat = {
+  options.et42.workflow.apps.shortcat = {
     enable = lib.mkEnableOption "Shortcat keyboard-driven UI navigation";
   };
 

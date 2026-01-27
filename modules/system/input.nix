@@ -5,10 +5,10 @@
 }:
 
 let
-  cfg = config.et42.workflow.input;
+  cfg = config.et42.workflow.system.input;
 in
 {
-  options.et42.workflow.input = {
+  options.et42.workflow.system.input = {
     enable = lib.mkEnableOption "input settings (disable autocorrect, etc.)";
 
     disableAutocorrect = lib.mkOption {

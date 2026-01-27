@@ -5,14 +5,14 @@
 }:
 
 let
-  cfg = config.et42.workflow.borders;
+  cfg = config.et42.workflow.apps.borders;
   user = config.et42.workflow.user;
 
   # allow vscode color previews
   stripHash = s: lib.removePrefix "#" s;
 in
 {
-  options.et42.workflow.borders = {
+  options.et42.workflow.apps.borders = {
     enable = lib.mkEnableOption "jankyborders window highlighting";
 
     activeColor = lib.mkOption {

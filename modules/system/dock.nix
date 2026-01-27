@@ -5,10 +5,10 @@
 }:
 
 let
-  cfg = config.et42.workflow.dock;
+  cfg = config.et42.workflow.system.dock;
 in
 {
-  options.et42.workflow.dock = {
+  options.et42.workflow.system.dock = {
     enable = lib.mkEnableOption "dock configuration";
 
     orientation = lib.mkOption {

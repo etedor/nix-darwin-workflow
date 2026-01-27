@@ -5,7 +5,7 @@
 }:
 
 let
-  cfg = config.et42.workflow.hammerspoon;
+  cfg = config.et42.workflow.apps.hammerspoon;
   user = config.et42.workflow.user;
 
   # path to embedded spoon files
@@ -39,7 +39,7 @@ let
   '';
 in
 {
-  options.et42.workflow.hammerspoon = {
+  options.et42.workflow.apps.hammerspoon = {
     enable = lib.mkEnableOption "Hammerspoon window manager";
 
     padding = lib.mkOption {
