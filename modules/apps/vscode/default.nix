@@ -26,7 +26,7 @@ let
     };
 
     editor = {
-      fontFamily = "'Font Awesome', 'FiraCode Nerd Font', 'monospace'";
+      fontFamily = cfg.fontFamily;
       fontSize = 12;
       fontLigatures = true;
       formatOnSave = true;
@@ -67,7 +67,7 @@ in
     package = lib.mkOption {
       type = lib.types.package;
       default = pkgs.vscode;
-      description = "vscode package to use";
+      description = "VSCode package to use";
     };
 
     extensionPkgs = lib.mkOption {
@@ -92,6 +92,12 @@ in
       type = lib.types.listOf lib.types.attrs;
       default = [ ];
       description = "additional VSCode keybindings";
+    };
+
+    fontFamily = lib.mkOption {
+      type = lib.types.str;
+      default = "SF Mono";
+      description = "editor font family";
     };
   };
 
