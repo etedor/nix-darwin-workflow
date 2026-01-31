@@ -18,7 +18,6 @@ obj.ultrawideCenterWidth = 0.40
 obj.ultrawideRightWidth = 0.30
 obj.standardLeftWidth = 0.50
 obj.standardRightWidth = 0.50
-obj.ultrawideSwapMode = "left-center"
 obj.terminalApp = "Ghostty"
 obj.enableInputToggle = false
 
@@ -36,7 +35,6 @@ function obj:start()
 		ultrawideRightWidth = self.ultrawideRightWidth,
 		standardLeftWidth = self.standardLeftWidth,
 		standardRightWidth = self.standardRightWidth,
-		ultrawideSwapMode = self.ultrawideSwapMode,
 		terminalApp = self.terminalApp,
 	}
 

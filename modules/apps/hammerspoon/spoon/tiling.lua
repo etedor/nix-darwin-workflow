@@ -1,10 +1,12 @@
 -- adaptive tiling: detects ultrawide vs standard per-screen
 --
 -- ultrawide (21:9+): configurable split (default: 30/40/30)
---   l/r/u     = left/right/center column (full height)
---   down      = swap columns (configurable: left-center or center-right)
+--   l/r       = left/right column (full height)
+--   u/d       = center column (top/bottom half)
 --   l+u, l+d  = top/bottom left
 --   r+u, r+d  = top/bottom right
+--   shift+u   = center column (full height)
+--   shift+l/r = swap focused column with adjacent (l=leftward, r=rightward)
 --
 -- standard (16:9): configurable split (default: 50/50)
 --   l/r       = left/right column (full height)
@@ -19,7 +21,6 @@ local ultrawideCenterWidth = settings.ultrawideCenterWidth or 0.40
 local ultrawideRightWidth = settings.ultrawideRightWidth or 0.30
 local standardLeftWidth = settings.standardLeftWidth or 0.50
 local standardRightWidth = settings.standardRightWidth or 0.50
-local ultrawideSwapMode = settings.ultrawideSwapMode or "left-center"
 
 hs.window.animationDuration = 0 -- instant
 
@@ -131,25 +132,17 @@ local function getWindowRow(win, sf)
 	return (centerY < sf.y + sf.h / 2) and 0 or 1
 end
 
--- swap columns based on ultrawideSwapMode setting
-local function swapColumns(screen, sf)
+-- swap all windows between two columns (ultrawide only)
+local function swapTwoColumns(screen, sf, colA, colB)
 	local allWindows = hs.window.visibleWindows()
 	for _, w in ipairs(allWindows) do
 		if w:screen():id() == screen:id() and w:isStandard() then
 			local col = getWindowColumn(w, sf, true)
 			local row = getWindowRow(w, sf)
-			if ultrawideSwapMode == "center-right" then
-				if col == 1 then
-					tileThirds(w, sf, 2, row)
-				elseif col == 2 then
-					tileThirds(w, sf, 1, row)
-				end
-			else -- "left-center" (default)
-				if col == 0 then
-					tileThirds(w, sf, 1, row)
-				elseif col == 1 then
-					tileThirds(w, sf, 0, row)
-				end
+			if col == colA then
+				tileThirds(w, sf, colB, row)
+			elseif col == colB then
+				tileThirds(w, sf, colA, row)
 			end
 		end
 	end
@@ -231,9 +224,9 @@ local function handleKey(key)
 			elseif firstKey == "right" then
 				tileThirds(currentWin, currentSf, 2, nil)
 			elseif firstKey == "up" then
-				tileThirds(currentWin, currentSf, 1, nil)
+				tileThirds(currentWin, currentSf, 1, 0)
 			elseif firstKey == "down" then
-				swapColumns(currentScreen, currentSf)
+				tileThirds(currentWin, currentSf, 1, 1)
 			end
 		else
 			if firstKey == "left" then
@@ -259,6 +252,63 @@ hs.hotkey.bind({ "ctrl", "alt" }, "up", function()
 end)
 hs.hotkey.bind({ "ctrl", "alt" }, "down", function()
 	handleKey("down")
+end)
+
+-- shift variants (ultrawide only): center column and column swapping
+hs.hotkey.bind({ "ctrl", "alt", "shift" }, "up", function()
+	local win = hs.window.focusedWindow()
+	if not win then
+		return
+	end
+	local screen = win:screen()
+	local sf = screen:frame()
+	if isUltrawide(screen) then
+		tileThirds(win, sf, 1, nil)
+	end
+end)
+
+-- shift+left: swap focused column leftward
+-- left focused → swap with right (wrap), center focused → swap with left, right focused → swap with center
+hs.hotkey.bind({ "ctrl", "alt", "shift" }, "left", function()
+	local win = hs.window.focusedWindow()
+	if not win then
+		return
+	end
+	local screen = win:screen()
+	local sf = screen:frame()
+	if not isUltrawide(screen) then
+		return
+	end
+	local col = getWindowColumn(win, sf, true)
+	if col == 0 then
+		swapTwoColumns(screen, sf, 0, 2) -- left ↔ right (wrap)
+	elseif col == 1 then
+		swapTwoColumns(screen, sf, 0, 1) -- center ↔ left
+	else
+		swapTwoColumns(screen, sf, 1, 2) -- right ↔ center
+	end
+end)
+
+-- shift+right: swap focused column rightward
+-- left focused → swap with center, center focused → swap with right, right focused → swap with left (wrap)
+hs.hotkey.bind({ "ctrl", "alt", "shift" }, "right", function()
+	local win = hs.window.focusedWindow()
+	if not win then
+		return
+	end
+	local screen = win:screen()
+	local sf = screen:frame()
+	if not isUltrawide(screen) then
+		return
+	end
+	local col = getWindowColumn(win, sf, true)
+	if col == 0 then
+		swapTwoColumns(screen, sf, 0, 1) -- left ↔ center
+	elseif col == 1 then
+		swapTwoColumns(screen, sf, 1, 2) -- center ↔ right
+	else
+		swapTwoColumns(screen, sf, 0, 2) -- right ↔ left (wrap)
+	end
 end)
 
 -- center window on screen
