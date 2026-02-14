@@ -108,12 +108,10 @@ in
     home-manager.users.${user}.programs.vscode = {
       enable = true;
       package = cfg.package;
-
-      profiles.default = {
-        extensions = baseExtensions ++ cfg.extraExtensions;
-        userSettings = lib.recursiveUpdate baseSettings cfg.extraSettings;
-        keybindings = baseKeybindings ++ cfg.extraKeybindings;
-      };
+      mutableExtensionsDir = false;
+      extensions = baseExtensions ++ cfg.extraExtensions;
+      userSettings = lib.recursiveUpdate baseSettings cfg.extraSettings;
+      keybindings = baseKeybindings ++ cfg.extraKeybindings;
     };
   };
 }
