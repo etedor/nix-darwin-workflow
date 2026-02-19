@@ -105,13 +105,20 @@ in
     environment.systemPackages = [ pkgs.nil ];
     programs.direnv.enable = true;
 
-    home-manager.users.${user}.programs.vscode = {
-      enable = true;
-      package = cfg.package;
-      mutableExtensionsDir = false;
-      extensions = baseExtensions ++ cfg.extraExtensions;
-      userSettings = lib.recursiveUpdate baseSettings cfg.extraSettings;
-      keybindings = baseKeybindings ++ cfg.extraKeybindings;
+    home-manager.users.${user}.programs = {
+      direnv = {
+        enable = true;
+        nix-direnv.enable = true;
+      };
+
+      vscode = {
+        enable = true;
+        package = cfg.package;
+        mutableExtensionsDir = false;
+        extensions = baseExtensions ++ cfg.extraExtensions;
+        userSettings = lib.recursiveUpdate baseSettings cfg.extraSettings;
+        keybindings = baseKeybindings ++ cfg.extraKeybindings;
+      };
     };
   };
 }
