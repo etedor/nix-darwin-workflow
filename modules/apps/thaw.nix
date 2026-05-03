@@ -5,17 +5,17 @@
 }:
 
 let
-  cfg = config.et42.workflow.apps.ice;
+  cfg = config.et42.workflow.apps.thaw;
 in
 {
-  options.et42.workflow.apps.ice = {
-    enable = lib.mkEnableOption "Ice menubar management";
+  options.et42.workflow.apps.thaw = {
+    enable = lib.mkEnableOption "Thaw menubar management";
   };
 
   config = lib.mkIf cfg.enable {
     system.defaults.NSGlobalDomain._HIHideMenuBar = false;
 
-    system.defaults.CustomUserPreferences."com.jordanbaird.Ice" = {
+    system.defaults.CustomUserPreferences."com.stonerl.Thaw" = {
       AutoRehide = true;
       CanToggleAlwaysHiddenSection = true;
       CustomIceIconIsTemplate = false;
@@ -37,6 +37,6 @@ in
       UseIceBar = false;
     };
 
-    homebrew.casks = [ "jordanbaird-ice@beta" ];
+    homebrew.casks = [ "thaw" ];
   };
 }

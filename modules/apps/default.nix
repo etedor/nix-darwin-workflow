@@ -2,7 +2,7 @@
   imports = [
     ./borders.nix
     ./hammerspoon
-    ./ice.nix
+    ./thaw.nix
     ./iss
     ./shortcat.nix
     ./vscode
