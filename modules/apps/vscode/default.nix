@@ -115,9 +115,11 @@ in
         enable = true;
         package = cfg.package;
         mutableExtensionsDir = false;
-        extensions = baseExtensions ++ cfg.extraExtensions;
-        userSettings = lib.recursiveUpdate baseSettings cfg.extraSettings;
-        keybindings = baseKeybindings ++ cfg.extraKeybindings;
+        profiles.default = {
+          extensions = baseExtensions ++ cfg.extraExtensions;
+          userSettings = lib.recursiveUpdate baseSettings cfg.extraSettings;
+          keybindings = baseKeybindings ++ cfg.extraKeybindings;
+        };
       };
     };
   };
