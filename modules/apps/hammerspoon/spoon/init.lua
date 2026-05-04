@@ -50,6 +50,9 @@ function obj:start()
 		dofile(hs.spoons.resourcePath("input-toggle.lua"))
 	end
 
+	-- per-host extensions: load ~/.hammerspoon/local.lua if present
+	pcall(dofile, hs.configdir .. "/local.lua")
+
 	hs.alert.show("WindowManager loaded")
 	return self
 end

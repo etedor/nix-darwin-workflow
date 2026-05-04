@@ -2,10 +2,10 @@
 --
 -- ultrawide (21:9+): configurable split (default: 30/40/30)
 --   l/r       = left/right column (full height)
---   u/d       = center column (top/bottom half)
+--   u/d       = center column (full height)
 --   l+u, l+d  = top/bottom left
 --   r+u, r+d  = top/bottom right
---   shift+u   = center column (full height)
+--   shift+u/d = center column (top/bottom half)
 --   shift+l/r = swap focused column with adjacent (l=leftward, r=rightward)
 --
 -- standard (16:9): configurable split (default: 50/50)
@@ -223,10 +223,8 @@ local function handleKey(key)
 				tileThirds(currentWin, currentSf, 0, nil)
 			elseif firstKey == "right" then
 				tileThirds(currentWin, currentSf, 2, nil)
-			elseif firstKey == "up" then
-				tileThirds(currentWin, currentSf, 1, 0)
-			elseif firstKey == "down" then
-				tileThirds(currentWin, currentSf, 1, 1)
+			elseif firstKey == "up" or firstKey == "down" then
+				tileThirds(currentWin, currentSf, 1, nil)
 			end
 		else
 			if firstKey == "left" then
@@ -254,7 +252,7 @@ hs.hotkey.bind({ "ctrl", "alt" }, "down", function()
 	handleKey("down")
 end)
 
--- shift variants (ultrawide only): center column and column swapping
+-- shift variants (ultrawide only): center halves and column swapping
 hs.hotkey.bind({ "ctrl", "alt", "shift" }, "up", function()
 	local win = hs.window.focusedWindow()
 	if not win then
@@ -263,7 +261,19 @@ hs.hotkey.bind({ "ctrl", "alt", "shift" }, "up", function()
 	local screen = win:screen()
 	local sf = screen:frame()
 	if isUltrawide(screen) then
-		tileThirds(win, sf, 1, nil)
+		tileThirds(win, sf, 1, 0)
+	end
+end)
+
+hs.hotkey.bind({ "ctrl", "alt", "shift" }, "down", function()
+	local win = hs.window.focusedWindow()
+	if not win then
+		return
+	end
+	local screen = win:screen()
+	local sf = screen:frame()
+	if isUltrawide(screen) then
+		tileThirds(win, sf, 1, 1)
 	end
 end)
 
