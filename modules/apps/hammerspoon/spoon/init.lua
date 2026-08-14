@@ -19,7 +19,9 @@ obj.ultrawideRightWidth = 0.30
 obj.standardLeftWidth = 0.50
 obj.standardRightWidth = 0.50
 obj.terminalApp = "Ghostty"
-obj.enableInputToggle = false
+obj.enableMonitorControl = false
+obj.monitorName = "DELL U4025QW"
+obj.betterDisplayBin = "/opt/homebrew/bin/betterdisplaycli"
 
 function obj:init()
 	return self
@@ -36,6 +38,8 @@ function obj:start()
 		standardLeftWidth = self.standardLeftWidth,
 		standardRightWidth = self.standardRightWidth,
 		terminalApp = self.terminalApp,
+		monitorName = self.monitorName,
+		betterDisplayBin = self.betterDisplayBin,
 	}
 
 	-- load modules
@@ -45,9 +49,9 @@ function obj:start()
 	dofile(hs.spoons.resourcePath("focus-cluster.lua"))
 	dofile(hs.spoons.resourcePath("switcher.lua"))
 
-	-- optional: monitor input toggle (requires m1ddc)
-	if self.enableInputToggle then
-		dofile(hs.spoons.resourcePath("input-toggle.lua"))
+	-- optional: monitor input / PBP / USB binds (requires BetterDisplay)
+	if self.enableMonitorControl then
+		dofile(hs.spoons.resourcePath("monitor-control.lua"))
 	end
 
 	-- per-host extensions: load ~/.hammerspoon/local.lua if present

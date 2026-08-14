@@ -67,7 +67,7 @@ et42.workflow = {
   apps.hammerspoon = {
     padding = 10;
     ultrawideLeftWidth = 0.20;
-    enableInputToggle = true;
+    enableMonitorControl = true;
   };
   apps.vscode = {
     extraExtensions = [ pkgs.vscode-extensions.golang.go ];

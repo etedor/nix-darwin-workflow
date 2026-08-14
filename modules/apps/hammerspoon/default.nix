@@ -27,7 +27,9 @@ let
     WindowManager.standardLeftWidth = ${toString cfg.standardLeftWidth}
     WindowManager.standardRightWidth = ${toString cfg.standardRightWidth}
     WindowManager.terminalApp = "${cfg.terminalApp}"
-    WindowManager.enableInputToggle = ${if cfg.enableInputToggle then "true" else "false"}
+    WindowManager.enableMonitorControl = ${if cfg.enableMonitorControl then "true" else "false"}
+    WindowManager.monitorName = "${cfg.monitorName}"
+    WindowManager.betterDisplayBin = "${cfg.betterDisplayBin}"
 
     -- override resourcePath to use nix store
     hs.spoons.resourcePath = function(file)
@@ -89,15 +91,27 @@ in
       description = "terminal app for cmd+` toggle";
     };
 
-    enableInputToggle = lib.mkOption {
+    enableMonitorControl = lib.mkOption {
       type = lib.types.bool;
       default = false;
-      description = "ctrl+alt+cmd+i toggle monitor input (requires m1ddc)";
+      description = "hyper+f1/f2 monitor input, PBP and USB binds (requires BetterDisplay)";
+    };
+
+    monitorName = lib.mkOption {
+      type = lib.types.str;
+      default = "DELL U4025QW";
+      description = "display name targeted by the monitor-control binds";
+    };
+
+    betterDisplayBin = lib.mkOption {
+      type = lib.types.str;
+      default = "/opt/homebrew/bin/betterdisplaycli";
+      description = "path to the betterdisplaycli binary";
     };
   };
 
   config = lib.mkIf cfg.enable {
-    homebrew.casks = [ "hammerspoon" ];
+    homebrew.casks = [ "hammerspoon" ] ++ lib.optional cfg.enableMonitorControl "betterdisplay";
 
     home-manager.users.${user}.home.file.".hammerspoon/init.lua".text = initLua;
   };
