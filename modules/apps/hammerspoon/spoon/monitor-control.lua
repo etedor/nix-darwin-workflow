@@ -17,6 +17,7 @@ local RETRY = 5
 -- read a VCP register; returns the integer value, or nil if DDC is unreachable
 local function ddcGet(vcp)
   local out = hs.execute(string.format('%s get -name="%s" -ddc -vcp=%s', BIN, NAME, vcp))
+  -- betterdisplaycli reports register values in decimal, so a plain digit-run parse is correct
   return tonumber((out or ""):match("%d+"))
 end
 
@@ -41,7 +42,11 @@ end
 local function apply(ops)
   for _, op in ipairs(ops) do
     if op.kind == "setVerified" then
-      ddcSetVerified(op.vcp, op.value)
+      -- stop and alert if a verified write never confirms; silent failure leaves layout wrong
+      if not ddcSetVerified(op.vcp, op.value) then
+        hs.alert.show("Monitor write not confirmed — layout may be wrong")
+        return
+      end
     else
       ddcSet(op.vcp, op.value)
     end
