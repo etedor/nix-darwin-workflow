@@ -21,6 +21,7 @@ M.TB = 25       -- 0x60 low byte
 --   mode  : M.SINGLE (0) or M.PBP (0x24)
 --   input : M.HDMI (17) | M.TB (25); required only for F1 in single mode
 -- op    : { kind = "set" | "setVerified", vcp = <string>, value = <string> }
+--       | { kind = "settle", ms = <number> }  (pause between DDC writes)
 function M.planActions(key, mode, input)
   if key == "F1" then
     if mode == M.PBP then
@@ -37,10 +38,13 @@ function M.planActions(key, mode, input)
       return { { kind = "set", vcp = M.codes.usb, value = "0xFF00" } }
     else
       -- enter the fixed layout: TB primary/left, HDMI secondary/right.
-      -- entering PBP makes the active input primary, so force TB with a
-      -- verified write (mode-change transients NAK the first attempt).
+      -- entering PBP is a slow transition that ends with the active input as
+      -- primary; settle before swapping or the transition reverts the swap.
+      -- the swap is then a stable-verified write (single-read verify passes on
+      -- a mid-transition transient, so setVerified requires the value to hold).
       return {
         { kind = "set", vcp = M.codes.mode, value = "0x24" },
+        { kind = "settle", ms = 2000 },
         { kind = "setVerified", vcp = M.codes.input, value = tostring(M.TB) },
         { kind = "setVerified", vcp = M.codes.secondary, value = tostring(M.HDMI) },
       }

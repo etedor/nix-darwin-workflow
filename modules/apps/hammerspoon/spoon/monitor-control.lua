@@ -11,7 +11,7 @@ local BIN = settings.betterDisplayBin or "/opt/homebrew/bin/betterdisplaycli"
 local NAME = settings.monitorName or "DELL U4025QW"
 
 local HYPER = { "ctrl", "alt", "cmd", "shift" }
-local SETTLE_US = 150000 -- 150 ms between a write and its verify read
+local SETTLE_US = 250000 -- 250 ms between a write and each verify read
 local RETRY = 5
 
 -- read a VCP register; returns the integer value, or nil if DDC is unreachable
@@ -26,22 +26,28 @@ local function ddcSet(vcp, value)
   hs.execute(string.format('%s set -name="%s" -ddc -vcp=%s -value=%s', BIN, NAME, vcp, value))
 end
 
--- write then confirm via read-back (low byte), retrying through transient NAKs
+-- write then confirm the value HOLDS: two consecutive matching low-byte reads.
+-- a single read can catch a mid-transition transient (e.g. a PBP-input swap
+-- that briefly echoes the written value before the enter-PBP transition
+-- reverts it), so we require the value to persist and re-write until it does.
 local function ddcSetVerified(vcp, value)
   local want = tonumber(value) % 256
   for _ = 1, RETRY do
     ddcSet(vcp, value)
     hs.timer.usleep(SETTLE_US)
-    local got = ddcGet(vcp)
-    if got and (got % 256) == want then return true end
+    local a = ddcGet(vcp)
     hs.timer.usleep(SETTLE_US)
+    local b = ddcGet(vcp)
+    if a and b and (a % 256) == want and (b % 256) == want then return true end
   end
   return false
 end
 
 local function apply(ops)
   for _, op in ipairs(ops) do
-    if op.kind == "setVerified" then
+    if op.kind == "settle" then
+      hs.timer.usleep(op.ms * 1000)
+    elseif op.kind == "setVerified" then
       -- stop and alert if a verified write never confirms; silent failure leaves layout wrong
       if not ddcSetVerified(op.vcp, op.value) then
         hs.alert.show("Monitor write not confirmed — layout may be wrong")

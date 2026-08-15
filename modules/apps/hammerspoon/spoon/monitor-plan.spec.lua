@@ -5,7 +5,13 @@ local M = dofile(here .. "monitor-plan.lua")
 local fails = 0
 local function ser(ops)
   local t = {}
-  for _, o in ipairs(ops) do t[#t + 1] = o.kind .. ":" .. o.vcp .. "=" .. o.value end
+  for _, o in ipairs(ops) do
+    if o.kind == "settle" then
+      t[#t + 1] = "settle:" .. o.ms
+    else
+      t[#t + 1] = o.kind .. ":" .. o.vcp .. "=" .. o.value
+    end
+  end
   return table.concat(t, ",")
 end
 local function check(name, got, want)
@@ -23,7 +29,7 @@ check("F1 single on TB toggles to HDMI", M.planActions("F1", M.SINGLE, M.TB),  "
 check("F1 single on HDMI toggles to TB", M.planActions("F1", M.SINGLE, M.HDMI), "set:0x60=25")
 check("F2 in PBP toggles USB",          M.planActions("F2", M.PBP, nil),    "set:0xE7=0xFF00")
 check("F2 single enters fixed PBP",     M.planActions("F2", M.SINGLE, nil),
-  "set:0xE9=0x24,setVerified:0x60=25,setVerified:0xE8=17")
+  "set:0xE9=0x24,settle:2000,setVerified:0x60=25,setVerified:0xE8=17")
 
 if fails > 0 then os.exit(1) end
 io.write("all passed\n")
