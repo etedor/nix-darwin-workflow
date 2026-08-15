@@ -49,7 +49,7 @@ function obj:start()
 	dofile(hs.spoons.resourcePath("focus-cluster.lua"))
 	dofile(hs.spoons.resourcePath("switcher.lua"))
 
-	-- optional: monitor input / PBP / USB binds (requires BetterDisplay)
+	-- The monitor keys for input, PBP, and USB. They need BetterDisplay.
 	if self.enableMonitorControl then
 		dofile(hs.spoons.resourcePath("monitor-control.lua"))
 	end

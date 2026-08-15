@@ -1,47 +1,50 @@
 -- monitor-plan.lua
--- pure decision logic for the Dell U4025QW monitor binds.
--- no hs.* dependency so it can be unit-tested with a plain Lua interpreter.
+-- This module makes the decisions for the Dell U4025QW monitor keys.
+-- The module does not use hs.*. A plain Lua interpreter can test it.
 
 local M = {}
 
--- VCP register semantics for the U4025QW (monitor-model constants, not user config)
+-- These are the VCP registers of the U4025QW. They are constants of the
+-- monitor. They are not user settings.
 M.codes = {
-  input = "0x60",     -- primary / current input source
-  secondary = "0xE8", -- PBP secondary input
-  mode = "0xE9",      -- PBP mode
-  usb = "0xE7",       -- USB-hub toggle (write-only, PBP)
+  input = "0x60",     -- The primary input.
+  secondary = "0xE8", -- The secondary input in PBP mode.
+  mode = "0xE9",      -- The PBP mode.
+  usb = "0xE7",       -- The USB switch. You can write it only. It works in PBP mode.
 }
-M.PBP = 0x24    -- 0xE9 value for 50/50 PBP
-M.SINGLE = 0    -- 0xE9 value for single/fullscreen
-M.HDMI = 17     -- 0x60 low byte
-M.TB = 25       -- 0x60 low byte
+M.PBP = 0x24    -- The value of register 0xE9 for 50/50 PBP mode.
+M.SINGLE = 0    -- The value of register 0xE9 for single mode.
+M.HDMI = 17     -- The low byte of register 0x60 for HDMI.
+M.TB = 25       -- The low byte of register 0x60 for Thunderbolt.
 
--- planActions(key, mode, input) -> list of ops
---   key   : "F1" | "F2"
---   mode  : M.SINGLE (0) or M.PBP (0x24)
---   input : M.HDMI (17) | M.TB (25); required only for F1 in single mode
--- op    : { kind = "set" | "setVerified", vcp = <string>, value = <string> }
---       | { kind = "settle", ms = <number> }  (pause between DDC writes)
+-- planActions(key, mode, input) gives a list of operations.
+--   key   : "F1" or "F2".
+--   mode  : M.SINGLE (0) or M.PBP (0x24).
+--   input : M.HDMI (17) or M.TB (25). F1 needs the input in single mode only.
+-- An operation is one of these:
+--   { kind = "set" or "setVerified", vcp = <string>, value = <string> }
+--   { kind = "settle", ms = <number> }   -- The delay in milliseconds.
 function M.planActions(key, mode, input)
   if key == "F1" then
     if mode == M.PBP then
-      -- exit PBP: monitor lands on primary (Thunderbolt), fullscreen
+      -- Stop PBP mode. The monitor shows the primary input (Thunderbolt) fullscreen.
       return { { kind = "set", vcp = M.codes.mode, value = "0" } }
     else
-      -- single: toggle input; the USB hub auto-follows the active input
+      -- Single mode. Change the input. The USB hub goes to the active input.
       local target = (input == M.TB) and M.HDMI or M.TB
       return { { kind = "set", vcp = M.codes.input, value = tostring(target) } }
     end
   elseif key == "F2" then
     if mode == M.PBP then
-      -- flip the USB hub to the other machine
+      -- Move the USB hub to the other machine.
       return { { kind = "set", vcp = M.codes.usb, value = "0xFF00" } }
     else
-      -- enter the fixed layout: TB primary/left, HDMI secondary/right.
-      -- entering PBP is a slow transition that ends with the active input as
-      -- primary; settle before swapping or the transition reverts the swap.
-      -- the swap is then a stable-verified write (single-read verify passes on
-      -- a mid-transition transient, so setVerified requires the value to hold).
+      -- Make the fixed layout: Thunderbolt on the left, HDMI on the right.
+      -- PBP mode starts slowly. It ends with the active input as the primary.
+      -- Wait before you change the primary input. If you change it too soon,
+      -- PBP mode changes it back. Then change the primary input with a verified
+      -- write. setVerified reads the value two times, because one read can show
+      -- a wrong value during the change.
       return {
         { kind = "set", vcp = M.codes.mode, value = "0x24" },
         { kind = "settle", ms = 2000 },

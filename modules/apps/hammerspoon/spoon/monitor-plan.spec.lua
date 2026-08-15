@@ -1,4 +1,4 @@
--- plain-lua unit tests for monitor-plan.planActions (no hs.* required)
+-- These are the unit tests for monitor-plan.planActions. They use plain Lua.
 local here = arg[0]:gsub("[^/]*$", "")
 local M = dofile(here .. "monitor-plan.lua")
 

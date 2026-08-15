@@ -1,8 +1,9 @@
 -- monitor-control.lua
--- state-aware Dell U4025QW binds over BetterDisplay raw DDC.
---   Hyper+F1  fullscreen / input toggle   (hammerspoon://monitor-fullscreen)
---   Hyper+F2  PBP layout / USB swap        (hammerspoon://monitor-pbp)
--- pure decision logic lives in monitor-plan.lua; this file is DDC I/O + bindings.
+-- These are the Dell U4025QW monitor keys. They use BetterDisplay for raw DDC.
+--   Hyper+F1  fullscreen or input change  (hammerspoon://monitor-fullscreen)
+--   Hyper+F2  PBP layout or USB switch    (hammerspoon://monitor-pbp)
+-- The module monitor-plan.lua makes the decisions. This file does the DDC and
+-- sets the keys.
 
 local plan = dofile(hs.spoons.resourcePath("monitor-plan.lua"))
 
@@ -11,25 +12,24 @@ local BIN = settings.betterDisplayBin or "/opt/homebrew/bin/betterdisplaycli"
 local NAME = settings.monitorName or "DELL U4025QW"
 
 local HYPER = { "ctrl", "alt", "cmd", "shift" }
-local SETTLE_US = 250000 -- 250 ms between a write and each verify read
+local SETTLE_US = 250000 -- The delay of 250 ms before each verify read.
 local RETRY = 5
 
--- read a VCP register; returns the integer value, or nil if DDC is unreachable
+-- Read a VCP register. Give the value. Give nil if the monitor does not answer.
 local function ddcGet(vcp)
   local out = hs.execute(string.format('%s get -name="%s" -ddc -vcp=%s', BIN, NAME, vcp))
-  -- betterdisplaycli reports register values in decimal, so a plain digit-run parse is correct
+  -- betterdisplaycli gives the values in decimal. Read the digits.
   return tonumber((out or ""):match("%d+"))
 end
 
--- write a VCP register (fire-and-forget)
+-- Write a VCP register. Do not read it back.
 local function ddcSet(vcp, value)
   hs.execute(string.format('%s set -name="%s" -ddc -vcp=%s -value=%s', BIN, NAME, vcp, value))
 end
 
--- write then confirm the value HOLDS: two consecutive matching low-byte reads.
--- a single read can catch a mid-transition transient (e.g. a PBP-input swap
--- that briefly echoes the written value before the enter-PBP transition
--- reverts it), so we require the value to persist and re-write until it does.
+-- Write a VCP register. Then make sure that the value holds. Read the low byte
+-- two times. The two reads must agree. One read can show a wrong value during a
+-- change. If the value does not hold, write it again.
 local function ddcSetVerified(vcp, value)
   local want = tonumber(value) % 256
   for _ = 1, RETRY do
@@ -48,7 +48,7 @@ local function apply(ops)
     if op.kind == "settle" then
       hs.timer.usleep(op.ms * 1000)
     elseif op.kind == "setVerified" then
-      -- stop and alert if a verified write never confirms; silent failure leaves layout wrong
+      -- If a verified write does not hold, show an alert and stop.
       if not ddcSetVerified(op.vcp, op.value) then
         hs.alert.show("Monitor write not confirmed — layout may be wrong")
         return
