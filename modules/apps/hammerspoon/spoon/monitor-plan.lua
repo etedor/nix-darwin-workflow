@@ -27,8 +27,15 @@ M.TB = 25       -- The low byte of register 0x60 for Thunderbolt.
 function M.planActions(key, mode, input)
   if key == "F1" then
     if mode == M.PBP then
-      -- Stop PBP mode. The monitor shows the primary input (Thunderbolt) fullscreen.
-      return { { kind = "set", vcp = M.codes.mode, value = "0" } }
+      -- Change the primary input to HDMI, then stop PBP mode. The monitor shows
+      -- HDMI fullscreen. Change the input first, while both inputs still show in
+      -- PBP mode. Then the monitor does not show Thunderbolt, and no settle
+      -- delay is necessary. The verified write holds on the first try in stable
+      -- PBP mode.
+      return {
+        { kind = "setVerified", vcp = M.codes.input, value = tostring(M.HDMI) },
+        { kind = "set", vcp = M.codes.mode, value = "0" },
+      }
     else
       -- Single mode. Change the input. The USB hub goes to the active input.
       local target = (input == M.TB) and M.HDMI or M.TB
