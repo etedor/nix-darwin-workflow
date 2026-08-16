@@ -15,11 +15,12 @@ local HYPER = { "ctrl", "alt", "cmd", "shift" }
 local SETTLE_US = 250000 -- The delay of 250 ms before each verify read.
 local RETRY = 5
 
--- Read a VCP register. Give the value. Give nil if the monitor does not answer.
+-- Read a VCP register. Give the value and the raw output. Give nil for the
+-- value if the read does not give a number.
 local function ddcGet(vcp)
   local out = hs.execute(string.format('%s get -name="%s" -ddc -vcp=%s', BIN, NAME, vcp))
   -- betterdisplaycli gives the values in decimal. Read the digits.
-  return tonumber((out or ""):match("%d+"))
+  return tonumber((out or ""):match("%d+")), out
 end
 
 -- Write a VCP register. Do not read it back.
@@ -59,19 +60,27 @@ local function apply(ops)
   end
 end
 
-local function notReachable()
-  hs.alert.show("Monitor not reachable — put this input on screen first")
+-- Show the correct alert when a read fails. betterdisplaycli calls the
+-- BetterDisplay app the "host app". If the host app is not running, tell the
+-- user to start it. If not, the monitor does not answer.
+local function unreachableAlert(out)
+  if out and string.find(out, "Host app", 1, true) then
+    hs.alert.show("BetterDisplay is not running. Start it.")
+  else
+    hs.alert.show("The monitor does not answer. Show this input on the screen.")
+  end
 end
 
 local function runKey(key)
-  local mode = ddcGet(plan.codes.mode)
-  if mode == nil then return notReachable() end
+  local mode, out = ddcGet(plan.codes.mode)
+  if mode == nil then return unreachableAlert(out) end
   mode = mode % 256
 
   local input = nil
   if key == "F1" and mode == plan.SINGLE then
-    input = ddcGet(plan.codes.input)
-    if input == nil then return notReachable() end
+    local inOut
+    input, inOut = ddcGet(plan.codes.input)
+    if input == nil then return unreachableAlert(inOut) end
     input = input % 256
   end
 
