@@ -3,8 +3,6 @@
 local settings = _G.windowManagerSettings or {}
 local terminalApp = settings.terminalApp or "Ghostty"
 
-local terminalFilter = hs.window.filter.new(terminalApp)
-
 cmdTap = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(e)
 	local flags = e:getFlags()
 	local chars = e:getCharacters()
@@ -36,13 +34,8 @@ cmdTap = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(e)
 				end
 			end
 		else
-			-- not on terminal: switch to terminal
-			local terminalWins = terminalFilter:getWindows(hs.window.filter.sortByFocusedLast)
-			if #terminalWins > 0 then
-				terminalWins[1]:focus()
-			else
-				hs.application.launchOrFocus(terminalApp)
-			end
+			-- not on terminal: focus terminal (launchOrFocus focuses it)
+			hs.application.launchOrFocus(terminalApp)
 		end
 		return true
 	end
